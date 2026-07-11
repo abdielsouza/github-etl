@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-import polars as pl
 
-class Loader(ABC):
+class Loader[Input](ABC):
     @abstractmethod
-    def load(self, dataframe: pl.DataFrame) -> None: ...
+    async def load(self, data: Input) -> None: ...

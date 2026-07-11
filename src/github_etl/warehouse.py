@@ -1,7 +1,5 @@
 from pathlib import Path
-
 import duckdb
-import polars as pl
 
 class Warehouse:
     def __init__(self, database: str):
@@ -11,7 +9,7 @@ class Warehouse:
     def connection(self):
         return duckdb.connect(self._database)
     
-    def query(self, sql: str) -> pl.DataFrame:
+    def query(self, sql: str):
         with self.connection as conn:
             return conn.sql(sql).pl()
     

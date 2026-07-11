@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
-import polars as pl
-
-class Transformer(ABC):
+class Transformer[Input, Output](ABC):
     @abstractmethod
-    def transform(self, data: Any) -> pl.DataFrame: ...
+    async def transform(self, data: Input) -> Output: ...

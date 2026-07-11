@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
-class Extractor(ABC):
+class Extractor[Input, Output](ABC):
     @abstractmethod
-    async def extract(self) -> list[Any]: ...
+    async def extract(self, content: Input) -> Output: ...

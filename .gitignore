@@ -7,8 +7,14 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
-.vscode
+/.venv
+
+# other files
+/.vscode
 .env
 .python-version
 *.lock
+
+# other folders
+/data
+/config

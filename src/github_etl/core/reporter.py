@@ -1,54 +1,34 @@
-from time import perf_counter
-from rich.console import Console
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    BarColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
+from abc import ABC, abstractmethod
 from .metrics import PipelineMetrics
+from enum import StrEnum
 
-class PipelineReporter:
-    def __init__(self):
-        self._console = Console()
-        self._metrics = PipelineMetrics()
-    
-    def start(self, total: int):
-        self._progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[bold cyan]{task.description}[/bold cyan]"),
-            BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
-            TimeElapsedColumn(),
-            console=self._console,
-        )
-        self._progress.start()
+class PipelineStage(StrEnum):
+    DISCOVERY = "discovery"
+    EXTRACTION = "extraction"
+    TRANSFORMATION = "transformation"
+    LOADING = "loading"
 
-        self._task = self._progress.add_task("Processing repositories", total=total)
-    
-    def advance(self, repository: str):
-        self._metrics.processed += 1
+class PipelineReporter(ABC):
+    @abstractmethod
+    def start(self, *, metrics: PipelineMetrics) -> None:
+       ...
 
-        self._progress.update(
-            self._task,
-            advance=1,
-            description=f"Processing {repository}",
-        )
+    @abstractmethod
+    def stage_started(self, *, stage: PipelineStage, total: int = 0) -> None:
+        ...
     
-    def loaded(self):
-        self._metrics.loaded += 1
+    @abstractmethod
+    def advance(self, *, stage: PipelineStage, amount: int = 1) -> None:
+        ...
     
-    def failed(self):
-        self._metrics.failed += 1
+    @abstractmethod
+    def stage_finished(self, *, stage: PipelineStage) -> None:
+        ...
     
-    def finish(self):
-        self._metrics.finished_at = perf_counter()
-        self._progress.stop()
-
-        self._console.print()
-        self._console.print("[bold green]Pipeline completed![/bold green]")
-        self._console.print(f"Repositories processed: {self._metrics.processed}")
-        self._console.print(f"Loaded: {self._metrics.loaded}")
-        self._console.print(f"Failed: {self._metrics.failed}")
-        self._console.print(f"Rate: {self._metrics.rate:.2f} repos per second")
+    @abstractmethod
+    def refresh(self, *, metrics: PipelineMetrics) -> None:
+        ...
+    
+    @abstractmethod
+    def finish(self, *, metrics: PipelineMetrics) -> None:
+        ...

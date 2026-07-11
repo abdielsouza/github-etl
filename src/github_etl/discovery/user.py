@@ -1,40 +1,30 @@
+from typing import AsyncIterator
+
 from .base import Discovery
 from github_etl.models import RepositoryReference
-from github_etl.extract.client import GithubClient
-import asyncio
+from github_etl.utils import GithubClient
 
 class UserDiscovery(Discovery):
     def __init__(self, client: GithubClient, users: list[str]):
         self._client = client
         self._users = users
 
-    async def discover(self):
-        tasks = [
-            asyncio.create_task(self._discover_user(user)) for user in self._users
-        ]
-        results = await asyncio.gather(*tasks)
-        repositories: list[RepositoryReference] = []
+    async def discover(self) -> AsyncIterator[RepositoryReference]:
+        print("user discover")
+        for user in self._users:
+            page = 1
 
-        for repos in results:
-            repositories.extend(repos)
-        
-        return repositories
-    
-    async def _discover_user(self, user: str) -> list[RepositoryReference]:
-        repositories = []
-        page = 1
+            while True:
+                try:
+                    data = await self._client.get(f"/users/{user}/repos?per_page=100&page={page}")
 
-        while True:
-            repos = await self._client.get(
-                f"/users/{user}/repos?per_page=100&page={page}"
-            )
+                    if not data:
+                        break
 
-            if not repos:
-                break
-
-            for repo in repos:
-                repositories.append(RepositoryReference(repo["owner"]["login"], repo["name"]))
-            
-            page += 1
-        
-        return repositories
+                    for repo in data:
+                        yield RepositoryReference(repo["owner"]["login"], repo["name"])
+                    
+                    page += 1
+                
+                except Exception as e:
+                    raise e
