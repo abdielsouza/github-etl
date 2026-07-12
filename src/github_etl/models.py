@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from datetime import datetime
 
 @dataclass(frozen=True)
 class RepositoryReference:
@@ -10,7 +10,15 @@ class RepositoryReference:
     def full_name(self):
         return f"{self.owner}/{self.name}"
 
-@dataclass(slots=True)
-class QueueItem[T]:
-    payload: Optional[T]
-    stop: bool = False
+@dataclass(slots=True, frozen=True)
+class RepositoryData:
+    id:             str
+    name:           str
+    owner:          str
+    stars:          int
+    forks:          int
+    watchers:       int
+    language:       str
+    open_issues:    int
+    created_at:     datetime
+    updated_at:     datetime
