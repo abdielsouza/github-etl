@@ -64,3 +64,9 @@ pip install -r requirements.txt
 # run the pipeline
 python -m github_etl.cli
 ```
+
+If you want to run the dashboard (still in **experimental mode**)...
+
+```bash
+streamlit run src/github_etl/dashboard.py
+```
