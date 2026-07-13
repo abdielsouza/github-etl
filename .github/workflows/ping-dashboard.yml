@@ -1,0 +1,12 @@
+name: Keep dashboard alive
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: 
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping dashboard
+        run: |
+          curl -L https://app-gitetl.streamlit.app
