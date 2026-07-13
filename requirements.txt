@@ -113,8 +113,6 @@ multidict==6.7.1
 mutagen==1.47.0
 networkx==2.8.8
 nftables==0.1
--e git+https://github.com/abdielsouza/nitrogen-py.git@08909ab55c5b4129f0a41be6966fcc39e969f22e#egg=nitrogen
--e git+https://github.com/abdielsouza/nitrogen-py.git@08909ab55c5b4129f0a41be6966fcc39e969f22e#egg=ntcore&subdirectory=modules/ntcore
 numpy==2.4.4
 oauthlib==3.3.1
 olefile==0.47
