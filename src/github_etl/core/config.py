@@ -1,6 +1,6 @@
-from pathlib import Path
 import tomllib
 
+from pathlib import Path
 from pydantic import BaseModel
 
 class GithubConfig(BaseModel):
