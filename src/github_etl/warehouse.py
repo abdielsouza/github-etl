@@ -1,18 +1,8 @@
-from pathlib import Path
-import duckdb
+from .stores import RepositoryStore
 
 class Warehouse:
-    def __init__(self, database: str):
-        self._database = Path(database)
+    def __init__(self, store: RepositoryStore):
+        self._store = store
     
-    @property
-    def connection(self):
-        return duckdb.connect(self._database)
-    
-    def query(self, sql: str):
-        with self.connection as conn:
-            return conn.sql(sql).pl()
-    
-    def execute(self, sql: str):
-        with self.connection as conn:
-            conn.execute(sql)
+    async def query(self, table: str, sql: str):
+        return await self._store.read(table, sql)

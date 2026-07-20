@@ -1,16 +1,60 @@
 import streamlit as st
 import altair as alt
+import asyncio
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 from github_etl.warehouse import Warehouse
-
-warehouse = Warehouse("data/warehouse.duckdb")
+from github_etl.stores import DuckDBStore, PostgresStore
+from github_etl.cli import scan_async
 
 st.set_page_config(
     page_title="Github ETL",
     layout="wide",
 )
 
-df = warehouse.query("SELECT * FROM repositories")
+@st.cache_resource
+def create_store():
+    load_dotenv()
+
+    if os.getenv("RUNNING_MODE") == "prod":
+        return PostgresStore(
+            user=os.environ["POSTGRES_DB_USER"],
+            dbname=os.environ["POSTGRES_DB_NAME"],
+            host=os.environ["POSTGRES_DB_HOST"],
+            password=os.environ["POSTGRES_DB_PASSWORD"],
+            port=os.environ["POSTGRES_DB_PORT"]
+        )
+
+    return DuckDBStore(Path("data/warehouse.duckdb"))
+
+async def retrieve_data():
+    warehouse = Warehouse(create_store()) # receives a RepositoryStore instance
+    return await warehouse.query("repositories", "SELECT * FROM repositories")
+
+df = asyncio.run(retrieve_data())
+
+with st.sidebar:
+    st.header("Update Data")
+
+    repos = st.text_area("Repositories", placeholder="owner/repo\nowner/repo")
+    users = st.text_area("Users", placeholder="torvalds\nguido")
+    orgs = st.text_area("Organizations", placeholder="microsoft\npython")
+
+    update_btn = st.button("Run Pipeline")
+
+    if update_btn:
+        repo_list = [r.strip() for r in repos.splitlines() if r.strip()]
+        user_list = [u.strip() for u in users.splitlines() if u.strip()]
+        org_list = [o.strip() for o in orgs.splitlines() if o.strip()]
+
+        with st.spinner("Updating..."):
+            try:
+                asyncio.run(scan_async(users=user_list, repos=repo_list, orgs=org_list))
+                st.success("Atualização concluída")
+            except:
+                st.error("Atualização falhou! Tente novamente.")
 
 st.title("Github ETL Dashboard")
 

@@ -16,5 +16,9 @@ class ExtractStage(Stage[RepositoryReference, dict]):
             return Ok(repo_data)
         
         except Exception as e:
-            metrics.failed += 1
+            metrics.add_error(
+                stage="extract",
+                message=str(e),
+                item=item.full_name,
+            )
             return Err(e)

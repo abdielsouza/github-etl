@@ -81,6 +81,9 @@ class ConsoleReporter(PipelineReporter):
             title="Summary"
             )
         )
+
+        for error in metrics.errors:
+            self.print(f"[{error.stage}] {error.item}:\n{error.message}")
     
     def print(self, content: str):
         self._console.print(content)

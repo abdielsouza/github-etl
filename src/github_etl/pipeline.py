@@ -1,22 +1,33 @@
 from aiostream import stream, async_
 
 from github_etl.core.pipeline import Pipeline
-from github_etl.core.config import Config
 from github_etl.core.reporters.console_reporter import ConsoleReporter
 from github_etl.utils import GithubClient
 from github_etl.stages import *
 from github_etl.discovery import *
 
+from .stores import RepositoryStore
+
 class RepositoryPipeline(Pipeline):
-    def __init__(self, client: GithubClient, database: str):
+    def __init__(
+        self,
+        client: GithubClient,
+        db_strategy: RepositoryStore,
+        *,
+        users: list[str] = [],
+        orgs: list[str] = [],
+        repos: list[str] = []
+    ):
         super().__init__()
 
-        self._config = Config.load("config/etl.toml")
         self._client = client
+        self._users = users
+        self._orgs = orgs
+        self._repos = repos
 
         self.extractor = ExtractStage(client)
         self.transformer = TransformStage()
-        self.loader = LoadStage(database)
+        self.loader = LoadStage(db_strategy)
     
     async def run(self):
         reporter = ConsoleReporter()
@@ -26,9 +37,9 @@ class RepositoryPipeline(Pipeline):
         reporter.print("discovering repos...")
         
         discoveries: list[Discovery] = [
-            UserDiscovery(self._client, self._config.github.users),
-            OrganizationDiscovery(self._client, self._config.github.orgs),
-            RepositoryDiscovery(self._config.github.repos),
+            UserDiscovery(self._client, self._users),
+            OrganizationDiscovery(self._client, self._orgs),
+            RepositoryDiscovery(self._repos),
         ]
 
         streams = [d.discover() for d in discoveries]
@@ -36,14 +47,14 @@ class RepositoryPipeline(Pipeline):
 
         repos = stream.map(
             repos,
-            async_(lambda repo, *args: self.extractor.process(repo, self._metrics)),
+            async_(lambda repo, *_: self.extractor.process(repo, self._metrics)),
             task_limit=64,
             ordered=False,
         )
 
         repos = stream.map(
             repos,
-            async_(lambda repo, *args: self.transformer.process(repo, self._metrics)),
+            async_(lambda repo, *_: self.transformer.process(repo, self._metrics)),
             task_limit=64,
             ordered=False,
         )
@@ -59,9 +70,9 @@ class RepositoryPipeline(Pipeline):
     
     async def _discover_repos(self):
         discoveries: list[Discovery] = [
-            UserDiscovery(self._client, self._config.github.users),
-            OrganizationDiscovery(self._client, self._config.github.orgs),
-            RepositoryDiscovery(self._config.github.repos),
+            UserDiscovery(self._client, self._users),
+            OrganizationDiscovery(self._client, self._orgs),
+            RepositoryDiscovery(self._repos),
         ]
 
         for discovery in discoveries:

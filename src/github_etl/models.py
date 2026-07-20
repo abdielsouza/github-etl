@@ -22,3 +22,6 @@ class RepositoryData:
     open_issues:    int
     created_at:     datetime
     updated_at:     datetime
+
+    def __getitem__(self, key: str):
+        return getattr(self, key)

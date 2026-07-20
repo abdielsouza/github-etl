@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Optional
 
+from .errors import PipelineError
+
 @dataclass(slots=True)
 class PipelineMetrics:
     discovered: int = 0
@@ -11,6 +13,7 @@ class PipelineMetrics:
     failed: int = 0
     started_at: float = field(default_factory=perf_counter)
     finished_at: Optional[float] = None
+    errors: list[PipelineError] = field(default_factory=list)
 
     @property
     def elapsed(self) -> float:
@@ -25,3 +28,9 @@ class PipelineMetrics:
             return 0
 
         return self.loaded / self.elapsed
+
+    def add_error(self, stage: str, message: str, item: Optional[str] = None):
+        self.failed += 1
+        self.errors.append(
+            PipelineError(stage=stage, message=message, item=item)
+        )
