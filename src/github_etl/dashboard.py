@@ -5,9 +5,9 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-from .warehouse import Warehouse
-from .stores import DuckDBStore, PostgresStore
-from .cli import scan_async
+from github_etl.warehouse import Warehouse
+from github_etl.stores import DuckDBStore, PostgresStore
+from github_etl.cli import scan_async
 
 st.set_page_config(
     page_title="Github ETL",
