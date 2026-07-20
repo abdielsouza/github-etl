@@ -4,6 +4,10 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
 
 from github_etl.warehouse import Warehouse
 from github_etl.stores import DuckDBStore, PostgresStore
